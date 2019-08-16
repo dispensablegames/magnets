@@ -33,3 +33,13 @@ def index(request):
 	}
 
 	return render(request, 'index.html', context)
+
+def magnetsJSON(request, door):
+	
+	magnetList = Magnet.objects.filter(door=door)
+
+	returnList = []
+	for magnet in magnetList:
+		returnList.append({'text': magnet.text, 'xpos':magnet.xpos, 'ypos':magnet.ypos, 'zpos':magnet.zpos})
+
+	return JsonResponse({"magnets": returnList})
