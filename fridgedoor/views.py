@@ -34,6 +34,9 @@ def index(request):
 
 	return render(request, 'index.html', context)
 
+def door(request, door):
+	return render(request, 'door.html', {})
+
 def magnetsJSON(request, door):
 	
 	magnetList = Magnet.objects.filter(door=door)
