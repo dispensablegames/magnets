@@ -73,8 +73,8 @@ class Door extends React.Component {
 		const magnet = this.state.magnets[pk];
 		const newmagnet = {
 			...magnet,
-			'offsetX': magnet.xpos - ev.clientX,
-			'offsetY': magnet.ypos - ev.clientY
+			'xOffset': magnet.xpos - ev.clientX,
+			'yOffset': magnet.ypos - ev.clientY
 		};
 		
 		this.putMagnet(newmagnet);
@@ -83,8 +83,8 @@ class Door extends React.Component {
 		 	const magnet = this.state.magnets[pk];
 		 	const newmagnet = {
 				...magnet,
-				'xpos': ev.clientX + magnet.offsetX,
-				'ypos': ev.clientY + magnet.offsetY
+				'xpos': ev.clientX + magnet.xOffset,
+				'ypos': ev.clientY + magnet.yOffset
 			};
 			this.putMagnet(newmagnet);
 		}
@@ -97,23 +97,6 @@ class Door extends React.Component {
 		
 		document.addEventListener("mouseup", handleMagnetMouseUp);
 		document.addEventListener("mousemove", handleMagnetMouseMove);
-	}
-
-	renderMagnets() {
-		const magnetsRendered = [];
-		for (const pk in this.state.magnets) {
-			const magnet = this.state.magnets[pk];
-			const magnetRendered = e(Magnet, {
-				'xpos': magnet.xpos,
-				'ypos': magnet.ypos,
-				'zpos': magnet.zpos,
-				'text': magnet.text,
-				'key': magnet.pk,
-				'onMouseDown': (ev) => this.handleMagnetMouseDown(magnet.pk, ev)
-			});
-			magnetsRendered.push(magnetRendered);
-		}
-		return magnetsRendered;
 	}
 
 	handleWordClick(text, ev) {
@@ -135,6 +118,47 @@ class Door extends React.Component {
 		});
 	}
 
+	handleWordListButtonClick(name, ev) {
+		ev.preventDefault();
+		this.setState({
+			'currentwordlist': name
+		});
+	}
+
+	handleSubmitButtonClick(ev) {
+		ev.preventDefault();
+		const magnets = this.state.magnets;
+		const csrf = document.body.dataset['csrf'];
+		console.log(csrf);
+		const data = JSON.stringify({
+			'magnets': magnets,
+		});
+		fetch(window.location, {
+			'method': 'POST',
+			'body': data, 
+			'headers': {
+				'X-CSRFToken': csrf
+			}
+		});
+	}
+
+	renderMagnets() {
+		const magnetsRendered = [];
+		for (const pk in this.state.magnets) {
+			const magnet = this.state.magnets[pk];
+			const magnetRendered = e(Magnet, {
+				'xpos': magnet.xpos,
+				'ypos': magnet.ypos,
+				'zpos': magnet.zpos,
+				'text': magnet.text,
+				'key': magnet.pk,
+				'onMouseDown': (ev) => this.handleMagnetMouseDown(magnet.pk, ev)
+			});
+			magnetsRendered.push(magnetRendered);
+		}
+		return magnetsRendered;
+	}
+
 	renderWordList() {
 		if (!this.state.currentwordlist) {
 			return;
@@ -154,19 +178,12 @@ class Door extends React.Component {
 		}, wordsRendered);
 	}
 
-	handleButtonClick(name, ev) {
-		ev.preventDefault();
-		this.setState({
-			'currentwordlist': name
-		});
-	}
-
 	renderWordListButtons() {
 		const buttonsRendered = [];
 		for (const name in this.state.wordlists) {
 			const buttonRendered = e('button', {
 				'className': 'button-wordlist',
-				'onClick': (ev) => this.handleButtonClick(name, ev),
+				'onClick': (ev) => this.handleWordListButtonClick(name, ev),
 			}, name);
 			buttonsRendered.push(e('li', { 'key': name }, buttonRendered));
 		}
@@ -185,6 +202,7 @@ class Door extends React.Component {
 		return e('div', {
 			'className': 'fridge',
 		}, this.renderWordListButtons(),
+		   e('button', {className: 'button-submit', 'onClick': (ev) => this.handleSubmitButtonClick(ev)}, 'save'), 
 		   this.renderMagnets());
 	}
 

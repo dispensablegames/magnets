@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from fridgedoor.models import Door, Word, WordList, Magnet
 from django.http import JsonResponse
+import json
 # Create your views here.
 
 def wordListJSON(request):
@@ -35,10 +36,31 @@ def index(request):
 	return render(request, 'index.html', context)
 
 def door(request, door):
-	return render(request, 'door.html', {})
+	if request.method == "POST":
+		data = json.loads(request.body)
+		print(data)
+
+		myDoor = Door.objects.get(name=door)
+		Magnet.objects.filter(door=myDoor).delete()
+
+		myMagnets = data['magnets']
+
+		for i in myMagnets:
+			magnet = myMagnets[i]
+			text = magnet['text']
+			xpos = magnet['xpos']
+			ypos = magnet['ypos']
+			zpos = magnet['zpos']
+			
+			doneMagnet = Magnet(text=text, xpos=xpos, ypos=ypos, zpos=zpos, door=myDoor)
+			doneMagnet.save()
+
+		return JsonResponse({})
+
+	else:
+		return render(request, 'door.html', {})
 
 def magnetsJSON(request, door):
-	
 	magnetList = Magnet.objects.filter(door=door)
 
 	returnList = []
