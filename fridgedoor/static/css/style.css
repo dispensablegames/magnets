@@ -1,10 +1,59 @@
+*,
+*:before,
+*:after {
+	box-sizing:border-box;
+}
+
 body {
+	padding:0;
+	background:gray;
+	overflow:hidden;
+	background:url('./bg.png');
 }
 
 .root {
 	position:relative;
 }
 
+.prototype {
+	display:none;
+}
 .magnet {
+	padding:0.6em 0.4em;
+	margin:0;
+	background:white;
+	cursor:pointer;
+	box-shadow:0.1em 0.1em 0.15em rgba(0, 0, 0, 0.5) ;
+	display:table;
+	border-radius:0.1em;
+	position:relative;
+}
+
+.magnet:before {
+	content: '';
+	display: block;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.menu {
+	background:black;
+	width:15em;
 	position:absolute;
+	top:0;
+	right:0;
+	height:100%;
+	overflow-y:scroll;
+	padding:1em;
+}
+
+.menu.closed {
+	display:none;
+}
+
+.word {
+	margin-bottom:1em;
 }
