@@ -38,7 +38,6 @@ def index(request):
 def door(request, door):
 	if request.method == "POST":
 		data = json.loads(request.body)
-		print(data)
 
 		myDoor = Door.objects.get(name=door)
 		Magnet.objects.filter(door=myDoor).delete()
