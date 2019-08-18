@@ -8,27 +8,66 @@ class Door extends React.Component {
 		super(props);
 		this.state = { 
 			'magnets': {},
+			'wordlists': {},
+			'currentwordlist': null,
+			'currentzpos': -Infinity,
 		}
 		fetch(window.location + '/magnets')
 			.then((response) => {
     			return response.json();
   			})
-  			.then((myJson) => {
+  			.then((json) => {
 				const newmagnets = {}
-				for (const magnet of myJson.magnets) {
+				let largestzpos = this.state.currentzpos;
+				for (const magnet of json.magnets) {
+					let uuid = getUniqueUUID(newmagnets);
+					if (magnet.zpos > largestzpos) {
+						largestzpos = magnet.zpos;
+					}
 					const newmagnet = {
 						...magnet,
-						'pk': magnet.pk,
+						'pk': uuid,
 						'xOffset': 0,
 						'yOffset': 0
 					}
-					newmagnets[magnet.pk] = newmagnet;
+					newmagnets[uuid] = newmagnet;
 				}
-				this.setState({ 'magnets': newmagnets });
+				if (largestzpos === -Infinity) {
+					largestzpos = 0;
+				}
+				this.setState({ 
+					'magnets': newmagnets,
+					'currentzpos': largestzpos + 1
+				});
   			});
+		fetch('/words')
+			.then((response) => {
+				return response.json();
+			})
+			.then((json) => {
+				let firstwordlist;
+				for (const name in json) {
+					firstwordlist = name;
+					break;
+				}
+				this.setState({
+					'wordlists': {
+						...json
+					},
+					'currentwordlist': firstwordlist
+				});
+			});
 	}
 
-	handleMouseDown(pk, ev) {	
+	putMagnet(magnet) {
+		const newmagnets = { ...this.state.magnets };
+		newmagnets[magnet.pk] = magnet;
+		this.setState({
+			'magnets': newmagnets
+		});
+	}
+
+	handleMagnetMouseDown(pk, ev) {	
 		ev.preventDefault();
 
 		const magnet = this.state.magnets[pk];
@@ -37,38 +76,27 @@ class Door extends React.Component {
 			'offsetX': magnet.xpos - ev.clientX,
 			'offsetY': magnet.ypos - ev.clientY
 		};
-		const newmagnets = {
-			...this.state.magnets
-		}
-		newmagnets[pk] = newmagnet
-		this.setState({
-			'magnets': newmagnets
-		});
+		
+		this.putMagnet(newmagnet);
 
-		 const handleMouseMove = (ev) => {
+		 const handleMagnetMouseMove = (ev) => {
 		 	const magnet = this.state.magnets[pk];
 		 	const newmagnet = {
 				...magnet,
 				'xpos': ev.clientX + magnet.offsetX,
 				'ypos': ev.clientY + magnet.offsetY
 			};
-			const newmagnets = {
-				...this.state.magnets
-			}
-			newmagnets[pk] = newmagnet
-			this.setState({
-				'magnets': newmagnets
-			});
+			this.putMagnet(newmagnet);
 		}
 		
-		 const handleMouseUp = (ev) => {
+		 const handleMagnetMouseUp = (ev) => {
 			ev.preventDefault();
-			document.removeEventListener("mousemove", handleMouseMove);
-			document.removeEventListener("mouseup", handleMouseUp);
+			document.removeEventListener("mousemove", handleMagnetMouseMove);
+			document.removeEventListener("mouseup", handleMagnetMouseUp);
 		}
 		
-		document.addEventListener("mouseup", handleMouseUp);
-		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMagnetMouseUp);
+		document.addEventListener("mousemove", handleMagnetMouseMove);
 	}
 
 	renderMagnets() {
@@ -81,15 +109,87 @@ class Door extends React.Component {
 				'zpos': magnet.zpos,
 				'text': magnet.text,
 				'key': magnet.pk,
-				'onMouseDown': (ev) => this.handleMouseDown(magnet.pk, ev)
+				'onMouseDown': (ev) => this.handleMagnetMouseDown(magnet.pk, ev)
 			});
 			magnetsRendered.push(magnetRendered);
 		}
 		return magnetsRendered;
 	}
 
+	handleWordClick(text, ev) {
+		ev.preventDefault();
+		const magnets = this.state.magnets;
+		let uuid = getUniqueUUID(magnets);
+		const newmagnet = {
+			'xpos': 0,
+			'ypos': 0,
+			'zpos': this.state.currentzpos,
+			'pk': uuid,
+			'xOffset': 0,
+			'yOffset': 0,
+			'text': text
+		}
+		this.putMagnet(newmagnet);
+		this.setState({
+			'currentzpos': this.state.currentzpos + 1
+		});
+	}
+
+	renderWordList() {
+		if (!this.state.currentwordlist) {
+			return;
+		}
+		const wordsRendered = [];
+		const wordlist = this.state.wordlists[this.state.currentwordlist];
+		for (const word of wordlist) {
+			const wordRendered = e(Word, {
+				'text': word,
+				'key': word,
+				'onClick': (ev) => this.handleWordClick(word, ev)
+			});
+			wordsRendered.push(wordRendered);
+		}
+		return e('ul', {
+			'className': 'wordlist',
+		}, wordsRendered);
+	}
+
+	handleButtonClick(name, ev) {
+		ev.preventDefault();
+		this.setState({
+			'currentwordlist': name
+		});
+	}
+
+	renderWordListButtons() {
+		const buttonsRendered = [];
+		for (const name in this.state.wordlists) {
+			const buttonRendered = e('button', {
+				'className': 'button-wordlist',
+				'onClick': (ev) => this.handleButtonClick(name, ev),
+			}, name);
+			buttonsRendered.push(e('li', { 'key': name }, buttonRendered));
+		}
+		return e('ul', {
+			'className': 'buttons-wordlist',
+		}, buttonsRendered);
+	}
+
+	renderFreezer() {
+		return e('div', {
+			'className': 'freezer'
+		}, this.renderWordList());
+	}
+
+	renderFridge() {
+		return e('div', {
+			'className': 'fridge',
+		}, this.renderWordListButtons(),
+		   this.renderMagnets());
+	}
+
 	render() {
-		return e('div', { className: 'door' }, this.renderMagnets());
+		return e('div', { className: 'door' }, this.renderFridge(), this.renderFreezer());
 	}
 
 
@@ -112,9 +212,34 @@ class Magnet extends React.Component {
 
 }
 
+class Word extends React.Component {
+	
+	render() {
+		return e('li', {
+			'className': 'word',
+			'onClick': this.props.onClick
+		}, this.props.text); 
+	}
+
+}
+
 ReactDOM.render(
 	e(Door),
 	document.getElementById("root")
 );
 
 
+function getRandomUUID() {
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+		return v.toString(16);
+	});
+}
+
+function getUniqueUUID(obj) {
+	let uuid = getRandomUUID();
+	while (obj[uuid]) {
+		uuid = getRandomUUID();
+	}
+	return uuid;
+}
