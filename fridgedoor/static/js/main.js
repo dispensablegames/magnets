@@ -7,57 +7,58 @@ class Door extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = { 
-			'magnets': [],
+			'magnets': {},
 		}
 		fetch(window.location + '/magnets')
 			.then((response) => {
     			return response.json();
   			})
   			.then((myJson) => {
-				this.setState({
-					'magnets' : myJson.magnets,
-				});
+				const newmagnets = {}
+				for (const magnet of myJson.magnets) {
+					const newmagnet = {
+						...magnet,
+						'pk': magnet.pk,
+						'xOffset': 0,
+						'yOffset': 0
+					}
+					newmagnets[magnet.pk] = newmagnet;
+				}
+				this.setState({ 'magnets': newmagnets });
   			});
 	}
 
-	renderMagnets() {
-		const magnetsRendered = this.state.magnets.map((magnet) => {
-			return e(Magnet, { magnet: magnet, key: magnet.text });
-		});
-		return magnetsRendered;
-	}
-
-	render() {
-		return e('div', { className: 'door' }, this.renderMagnets());
-	}
-
-
-}
-
-class Magnet extends React.Component {
-
-	constructor(props) {
-		super(props);
-		const magnet = props.magnet;
-		this.state = {
-			'zpos': magnet.zpos,
-			'ypos': magnet.ypos,
-			'xpos': magnet.xpos,
-			'text': magnet.text,
-			'offsetX': 0,
-			'offsetY': 0,
-		};
-	}
-
-
-	handleMouseDown(ev) {	
+	handleMouseDown(pk, ev) {	
 		ev.preventDefault();
 
-		this.setState({'offsetX': this.state.xpos - ev.clientX, 'offsetY':this.state.ypos - ev.clientY})
+		const magnet = this.state.magnets[pk];
+		const newmagnet = {
+			...magnet,
+			'offsetX': magnet.xpos - ev.clientX,
+			'offsetY': magnet.ypos - ev.clientY
+		};
+		const newmagnets = {
+			...this.state.magnets
+		}
+		newmagnets[pk] = newmagnet
+		this.setState({
+			'magnets': newmagnets
+		});
 
 		 const handleMouseMove = (ev) => {
-
-			this.setState({'xpos': ev.clientX + this.state.offsetX, 'ypos': ev.clientY + this.state.offsetY});
+		 	const magnet = this.state.magnets[pk];
+		 	const newmagnet = {
+				...magnet,
+				'xpos': ev.clientX + magnet.offsetX,
+				'ypos': ev.clientY + magnet.offsetY
+			};
+			const newmagnets = {
+				...this.state.magnets
+			}
+			newmagnets[pk] = newmagnet
+			this.setState({
+				'magnets': newmagnets
+			});
 		}
 		
 		 const handleMouseUp = (ev) => {
@@ -70,16 +71,43 @@ class Magnet extends React.Component {
 		document.addEventListener("mousemove", handleMouseMove);
 	}
 
+	renderMagnets() {
+		const magnetsRendered = [];
+		for (const pk in this.state.magnets) {
+			const magnet = this.state.magnets[pk];
+			const magnetRendered = e(Magnet, {
+				'xpos': magnet.xpos,
+				'ypos': magnet.ypos,
+				'zpos': magnet.zpos,
+				'text': magnet.text,
+				'key': magnet.pk,
+				'onMouseDown': (ev) => this.handleMouseDown(magnet.pk, ev)
+			});
+			magnetsRendered.push(magnetRendered);
+		}
+		return magnetsRendered;
+	}
+
+	render() {
+		return e('div', { className: 'door' }, this.renderMagnets());
+	}
+
+
+}
+
+class Magnet extends React.Component {
 
 	render() {
 		const style = {
-				'top': this.state.ypos,
-				'left': this.state.xpos,
-				'zIndex': this.state.zpos,
-			}		
-		return e('span', 
-		         { className: 'magnet', style: style, onMouseDown: (ev) => this.handleMouseDown(ev) },
-				 this.state.text);
+			'top': this.props.ypos,
+			'left': this.props.xpos,
+			'zIndex': this.props.zpos,
+		};		
+		return e('span', { 
+			'className': 'magnet', 
+			'style': style, 
+			'onMouseDown': this.props.onMouseDown 
+		}, this.props.text);
 	}
 
 }

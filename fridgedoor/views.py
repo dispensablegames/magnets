@@ -43,6 +43,13 @@ def magnetsJSON(request, door):
 
 	returnList = []
 	for magnet in magnetList:
-		returnList.append({'text': magnet.text, 'xpos':magnet.xpos, 'ypos':magnet.ypos, 'zpos':magnet.zpos})
+		newmagnet = {
+			'text': magnet.text,
+			'xpos': magnet.xpos,
+			'ypos': magnet.ypos,
+			'zpos': magnet.zpos,
+			'pk': magnet.pk,
+		}
+		returnList.append(newmagnet)
 
 	return JsonResponse({"magnets": returnList})
