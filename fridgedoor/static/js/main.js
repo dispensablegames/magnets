@@ -74,9 +74,12 @@ class Door extends React.Component {
 		const newmagnet = {
 			...magnet,
 			'xOffset': magnet.xpos - ev.clientX,
-			'yOffset': magnet.ypos - ev.clientY
+			'yOffset': magnet.ypos - ev.clientY,
+			'zpos': this.state.currentzpos
 		};
-		
+		this.setState({
+			'currentzpos': this.state.currentzpos + 1
+		});
 		this.putMagnet(newmagnet);
 
 		 const handleMagnetMouseMove = (ev) => {
