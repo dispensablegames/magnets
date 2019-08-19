@@ -59,12 +59,12 @@ class Door extends React.Component {
 			});
 	}
 
-	putMagnet(magnet) {
+	putMagnet(magnet, callback) {
 		const newmagnets = { ...this.state.magnets };
 		newmagnets[magnet.pk] = magnet;
 		this.setState({
 			'magnets': newmagnets
-		});
+		}, callback);
 	}
 
 	handleMagnetMouseDown(pk, ev) {	
@@ -100,8 +100,8 @@ class Door extends React.Component {
 		document.addEventListener("mousemove", handleMagnetMouseMove);
 	}
 
-	handleWordClick(text, ev) {
-		ev.preventDefault();
+	handleWordMouseDown(text, ev) {
+		ev.persist();
 		const magnets = this.state.magnets;
 		let uuid = getUniqueUUID(magnets);
 		console.log(ev.clientX);
@@ -115,11 +115,13 @@ class Door extends React.Component {
 			'yOffset': 0,
 			'text': text
 		}
-		this.putMagnet(newmagnet);
 		this.setState({
 			'currentzpos': this.state.currentzpos + 1
 		});
-		this.submitMagnets();
+
+		this.putMagnet(newmagnet, () => this.handleMagnetMouseDown(newmagnet.pk, ev));
+
+
 	}
 
 	handleWordListButtonClick(name, ev) {
@@ -178,7 +180,7 @@ class Door extends React.Component {
 			const wordRendered = e(Word, {
 				'text': word,
 				'key': word,
-				'onClick': (ev) => this.handleWordClick(word, ev)
+				'onMouseDown': (ev) => this.handleWordMouseDown(word, ev)
 			});
 			wordsRendered.push(wordRendered);
 		}
@@ -248,7 +250,7 @@ class Word extends React.Component {
 	render() {
 		return e('li', {
 			'className': 'word',
-			'onClick': this.props.onClick
+			'onMouseDown': this.props.onMouseDown
 		}, this.props.text); 
 	}
 
