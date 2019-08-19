@@ -23,7 +23,10 @@ body {
 	box-shadow:0.1em 0.1em 0.15em rgba(0, 0, 0, 0.5) ;
 	display:table;
 	border-radius:0.1em;
-	position:relative;
+}
+
+.magnet {
+	position:absolute;
 }
 
 .magnet:before {
