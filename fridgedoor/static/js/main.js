@@ -100,15 +100,14 @@ class Door extends React.Component {
 		document.addEventListener("mousemove", handleMagnetMouseMove);
 	}
 
-	handleWordMouseDown(text, ev) {
+	handleWordMouseDown(text, ref, ev) {
 		ev.persist();
 		const magnets = this.state.magnets;
 		let uuid = getUniqueUUID(magnets);
-		console.log(ev.clientX);
-		console.log(ev.clientY);
+		const boundingBox = ref.current.getBoundingClientRect()
 		const newmagnet = {
-			'xpos': ev.clientX,
-			'ypos': ev.clientY,
+			'xpos': boundingBox.left,
+			'ypos': boundingBox.top,
 			'zpos': this.state.currentzpos,
 			'pk': uuid,
 			'xOffset': 0,
@@ -180,7 +179,7 @@ class Door extends React.Component {
 			const wordRendered = e(Word, {
 				'text': word,
 				'key': word,
-				'onMouseDown': (ev) => this.handleWordMouseDown(word, ev)
+				'onMouseDown': (ref, ev) => this.handleWordMouseDown(word, ref, ev)
 			});
 			wordsRendered.push(wordRendered);
 		}
@@ -246,11 +245,17 @@ class Magnet extends React.Component {
 }
 
 class Word extends React.Component {
+
+	constructor(props) {
+		super(props);
+		this.ref = React.createRef();
+	}
 	
 	render() {
 		return e('li', {
+			'ref': this.ref,
 			'className': 'word',
-			'onMouseDown': this.props.onMouseDown
+			'onMouseDown': (ev) => this.props.onMouseDown(this.ref, ev)
 		}, this.props.text); 
 	}
 
