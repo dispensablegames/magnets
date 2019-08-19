@@ -91,6 +91,7 @@ class Door extends React.Component {
 		
 		 const handleMagnetMouseUp = (ev) => {
 			ev.preventDefault();
+			this.submitMagnets();
 			document.removeEventListener("mousemove", handleMagnetMouseMove);
 			document.removeEventListener("mouseup", handleMagnetMouseUp);
 		}
@@ -103,9 +104,11 @@ class Door extends React.Component {
 		ev.preventDefault();
 		const magnets = this.state.magnets;
 		let uuid = getUniqueUUID(magnets);
+		console.log(ev.clientX);
+		console.log(ev.clientY);
 		const newmagnet = {
-			'xpos': 0,
-			'ypos': 0,
+			'xpos': ev.clientX,
+			'ypos': ev.clientY,
 			'zpos': this.state.currentzpos,
 			'pk': uuid,
 			'xOffset': 0,
@@ -116,6 +119,7 @@ class Door extends React.Component {
 		this.setState({
 			'currentzpos': this.state.currentzpos + 1
 		});
+		this.submitMagnets();
 	}
 
 	handleWordListButtonClick(name, ev) {
@@ -125,11 +129,16 @@ class Door extends React.Component {
 		});
 	}
 
-	handleSubmitButtonClick(ev) {
+	handleClearButtonClick(ev) {
 		ev.preventDefault();
+		this.setState({
+			'magnets': {}
+		}, () => this.submitMagnets());
+	}
+
+	submitMagnets() {
 		const magnets = this.state.magnets;
 		const csrf = document.body.dataset['csrf'];
-		console.log(csrf);
 		const data = JSON.stringify({
 			'magnets': magnets,
 		});
@@ -199,10 +208,14 @@ class Door extends React.Component {
 	}
 
 	renderFridge() {
+		const clearButton = e('button', {
+			'className': 'button-clear',
+			'onClick': (ev) => this.handleClearButtonClick(ev)
+		}, 'clear');
 		return e('div', {
 			'className': 'fridge',
 		}, this.renderWordListButtons(),
-		   e('button', {className: 'button-submit', 'onClick': (ev) => this.handleSubmitButtonClick(ev)}, 'save'), 
+		   clearButton,
 		   this.renderMagnets());
 	}
 
