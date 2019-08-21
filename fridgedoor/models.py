@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 class Word(models.Model):
 	
@@ -39,6 +40,9 @@ class Magnet(models.Model):
 class Door(models.Model):
 	
 	name = models.CharField(max_length=50, primary_key=True)
+
+	def get_absolute_url(self):
+		return reverse("door", args=[str(self.name)])
 
 	def __str__(self):
 		return self.name

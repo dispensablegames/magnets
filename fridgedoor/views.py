@@ -1,7 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from fridgedoor.models import Door, Word, WordList, Magnet
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 import json
+from .utils import *
+
 # Create your views here.
 
 def wordListJSON(request):
@@ -21,25 +23,26 @@ def wordListJSON(request):
 	return JsonResponse(returnList)
 
 def index(request):
-	num_words = Word.objects.all().count()
+	myName = randomString(50)
+	while Door.objects.filter(name=myName).exists():
+		myName = randomString(50)
+	myDoor = Door(name=myName)
+	myDoor.save()
 
-	num_wordLists = WordList.objects.all().count()
+	
 
-	num_doors = Door.objects.all().count()
-
-	context = {
-		'num_words': num_words,
-		'num_wordLists': num_wordLists,
-		'num_doors': num_doors
-	}
-
-	return render(request, 'index.html', context)
+	return redirect(myDoor.get_absolute_url())
 
 def door(request, door):
+
+	try:
+		myDoor = Door.objects.get(name=door)
+	except Door.DoesNotExist:
+		raise Http404()
+
 	if request.method == "POST":
 		data = json.loads(request.body)
 
-		myDoor = Door.objects.get(name=door)
 		Magnet.objects.filter(door=myDoor).delete()
 
 		myMagnets = data['magnets']
