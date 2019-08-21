@@ -11,6 +11,7 @@ class Door extends React.Component {
 			'wordlists': {},
 			'currentwordlist': null,
 			'currentzpos': -Infinity,
+			'freezerref': React.createRef()
 		}
 		fetch(window.location + '/magnets')
 			.then((response) => {
@@ -67,6 +68,14 @@ class Door extends React.Component {
 		}, callback);
 	}
 
+	removeMagnet(pk, callback) {
+		const newmagnets = { ...this.state.magnets };
+		delete newmagnets[pk];
+		this.setState({
+			'magnets': newmagnets
+		}, callback);
+	}
+
 	handleMagnetMouseDown(pk, ev) {	
 		ev.preventDefault();
 
@@ -94,9 +103,28 @@ class Door extends React.Component {
 		
 		 const handleMagnetMouseUp = (ev) => {
 			ev.preventDefault();
-			this.submitMagnets();
 			document.removeEventListener("mousemove", handleMagnetMouseMove);
 			document.removeEventListener("mouseup", handleMagnetMouseUp);
+
+			const freezernode = this.state.freezerref.current;
+			const freezerBox = freezernode.getBoundingClientRect();
+			const freezerTop = freezerBox.top;
+			const freezerLeft = freezerBox.left;
+			const freezerRight = freezerBox.right;
+			const freezerBot = freezerBox.bottom;
+
+			if (ev.clientX > freezerLeft && 
+			    ev.clientX < freezerRight && 
+				ev.clientY > freezerTop && 
+				ev.clientY < freezerBot) {
+				this.removeMagnet(pk, () => { 
+					this.submitMagnets();
+				});
+			}
+
+			else {
+				this.submitMagnets();
+			}
 		}
 		
 		document.addEventListener("mouseup", handleMagnetMouseUp);
@@ -107,7 +135,7 @@ class Door extends React.Component {
 		ev.persist();
 		const magnets = this.state.magnets;
 		let uuid = getUniqueUUID(magnets);
-		const boundingBox = ref.current.getBoundingClientRect()
+		const boundingBox = ref.current.getBoundingClientRect();
 		const newmagnet = {
 			'xpos': boundingBox.left,
 			'ypos': boundingBox.top,
@@ -207,7 +235,8 @@ class Door extends React.Component {
 
 	renderFreezer() {
 		return e('div', {
-			'className': 'freezer'
+			'className': 'freezer',
+			'ref': this.state.freezerref
 		}, this.renderWordList());
 	}
 
