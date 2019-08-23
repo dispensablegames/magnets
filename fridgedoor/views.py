@@ -1,6 +1,10 @@
 from django.shortcuts import render, redirect
 from fridgedoor.models import Door, Word, WordList, Magnet
+from fridgedoor.forms import MassAddWordForm
 from django.http import JsonResponse, Http404
+from django.contrib.auth import authenticate
+from django.urls import reverse
+
 import json
 from .utils import *
 
@@ -77,3 +81,38 @@ def magnetsJSON(request, door):
 		returnList.append(newmagnet)
 
 	return JsonResponse({"magnets": returnList})
+
+def massAddNewWords(request):
+
+	if request.method == "POST":
+		myForm = MassAddWordForm(request.POST)
+
+		if myForm.is_valid():
+
+			myUser = authenticate(request, username=myForm.cleaned_data['username'], password=myForm.cleaned_data['password'])
+			if myUser is not None:
+				
+				myText = myForm.cleaned_data['word_list']
+				myWordList = myForm.cleaned_data['wordlist_list']
+				
+				words = myText.split('\n')
+				for word in words:
+					try:
+						otherWord = Word.objects.get(text=word)
+						otherWord.wordList.add(myWordList)
+					except Word.DoesNotExist:
+						newWord = Word(text=word)
+						newWord.save()
+						newWord.wordList.add(myWordList)
+
+			return redirect(reverse('index', args=[]))
+
+
+	else:
+		form = MassAddWordForm()
+
+	context = {
+		'form': form
+	}
+	
+	return render(request, 'massaddnewwords.html', context)

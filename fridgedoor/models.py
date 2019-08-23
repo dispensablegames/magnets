@@ -5,7 +5,7 @@ class Word(models.Model):
 	
 	text = models.CharField(max_length=50, primary_key=True)
 
-	wordList = models.ForeignKey('WordList', on_delete=models.CASCADE)
+	wordList = models.ManyToManyField('WordList')
 
 	class Meta:
 		ordering = ['text']
