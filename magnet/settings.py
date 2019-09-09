@@ -26,7 +26,7 @@ with open(os.path.join(BASE_DIR, 'key.txt')) as f:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'poetrymag.net']
 
 
 # Application definition
