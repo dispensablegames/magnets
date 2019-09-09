@@ -6,6 +6,7 @@
 
 body {
 	padding:0;
+	margin:0;
 	background:gray;
 	overflow:hidden;
 }
@@ -45,17 +46,6 @@ body {
 	left: 0;
 }
 
-.freezer {
-	background:black;
-	width:15em;
-	position:absolute;
-	top:0;
-	right:0;
-	height:100%;
-	overflow-y:scroll;
-	padding:1em;
-}
-
 .wordlist {
 	list-style-type:none;
 	margin:0;
@@ -74,5 +64,43 @@ body {
 }
 
 .word {
-	margin-bottom:1em;
+	display:inline-block;
+	margin-right:1em;
+}
+
+.freezer {
+	background:black;
+	position:relative;
+	padding:1em;
+	overflow-x:scroll;
+	white-space:nowrap;
+}
+
+.fridge {
+	position:relative;
+	white-space:nowrap;
+}
+
+@media (min-width: 800px) {
+	.word {
+		display:table;
+		margin-bottom:1em;
+		margin-right:0;
+	}
+
+	.fridge {
+		width:calc(100% - 15em);
+	}
+
+
+	.freezer {
+		background:black;
+		width:15em;
+		position:absolute;
+		top:0;
+		right:0;
+		height:100%;
+		overflow-y:scroll;
+		padding:1em;
+	}
 }

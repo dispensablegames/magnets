@@ -11,7 +11,8 @@ class Door extends React.Component {
 			'wordlists': {},
 			'currentwordlist': null,
 			'currentzpos': -Infinity,
-			'freezerref': React.createRef()
+			'freezerref': React.createRef(),
+			'fridgeref': React.createRef()
 		}
 		fetch(window.location + '/magnets')
 			.then((response) => {
@@ -136,9 +137,10 @@ class Door extends React.Component {
 		const magnets = this.state.magnets;
 		let uuid = getUniqueUUID(magnets);
 		const boundingBox = ref.current.getBoundingClientRect();
+		const fridgeBoundingBox = this.state.fridgeref.current.getBoundingClientRect();
 		const newmagnet = {
-			'xpos': boundingBox.left,
-			'ypos': boundingBox.top,
+			'xpos': boundingBox.left - fridgeBoundingBox.left,
+			'ypos': boundingBox.top - fridgeBoundingBox.top,
 			'zpos': this.state.currentzpos,
 			'pk': uuid,
 			'xOffset': 0,
@@ -247,13 +249,14 @@ class Door extends React.Component {
 		}, 'clear');
 		return e('div', {
 			'className': 'fridge',
+			'ref': this.state.fridgeref
 		}, this.renderWordListButtons(),
 		   clearButton,
 		   this.renderMagnets());
 	}
 
 	render() {
-		return e('div', { className: 'door' }, this.renderFridge(), this.renderFreezer());
+		return e('div', { className: 'door' }, this.renderFreezer(), this.renderFridge());
 	}
 
 
