@@ -20,7 +20,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '*bki)(2_*bj##s7at$v$*)7x(4z&zfd35uq8oe(t*yub&^$4!5'
+with open(os.path.join(BASE_DIR, 'key.txt')) as f:
+	SECRET_KEY = f.read().strip()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -74,10 +75,23 @@ WSGI_APPLICATION = 'magnet.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+with open(os.path.join(BASE_DIR, 'name.txt')) as f:
+	DATABASE_NAME = f.read().strip()
+
+with open(os.path.join(BASE_DIR, 'username.txt')) as f:
+	DATABASE_USER = f.read().strip()
+
+with open(os.path.join(BASE_DIR, 'password.txt')) as f:
+	DATABASE_PASS = f.read().strip()
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': DATABASE_NAME,
+		'USER': DATABASE_USER,
+		'PASSWORD': DATABASE_PASS,
+		'HOST': 'localhost',
+		'PORT': '',
     }
 }
 
