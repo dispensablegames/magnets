@@ -78,7 +78,6 @@ class Door extends React.Component {
 	}
 
 	handleMagnetMouseDown(pk, ev) {	
-		ev.preventDefault();
 
 		const magnet = this.state.magnets[pk];
 		const newmagnet = {
@@ -103,7 +102,6 @@ class Door extends React.Component {
 		}
 		
 		 const handleMagnetMouseUp = (ev) => {
-			ev.preventDefault();
 			document.removeEventListener("mousemove", handleMagnetMouseMove);
 			document.removeEventListener("mouseup", handleMagnetMouseUp);
 
@@ -157,14 +155,12 @@ class Door extends React.Component {
 	}
 
 	handleWordListButtonClick(name, ev) {
-		ev.preventDefault();
 		this.setState({
 			'currentwordlist': name
 		});
 	}
 
 	handleClearButtonClick(ev) {
-		ev.preventDefault();
 		this.setState({
 			'magnets': {}
 		}, () => this.submitMagnets());
