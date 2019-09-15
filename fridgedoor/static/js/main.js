@@ -77,33 +77,38 @@ class Door extends React.Component {
 		}, callback);
 	}
 
-	handleMagnetMouseDown(pk, ev) {	
+	handleMagnetDown(pk, ev) {	
+		const cursor = getCursor(ev);
 
 		const magnet = this.state.magnets[pk];
 		const newmagnet = {
 			...magnet,
-			'xOffset': magnet.xpos - ev.clientX,
-			'yOffset': magnet.ypos - ev.clientY,
+			'xOffset': magnet.xpos - cursor.clientX,
+			'yOffset': magnet.ypos - cursor.clientY,
 			'zpos': this.state.currentzpos
 		};
+		console.log(newmagnet);
 		this.setState({
 			'currentzpos': this.state.currentzpos + 1
 		});
 		this.putMagnet(newmagnet);
 
-		 const handleMagnetMouseMove = (ev) => {
+		 const handleMagnetMove = (ev) => {
+		 	const cursor = getCursor(ev);
 		 	const magnet = this.state.magnets[pk];
 		 	const newmagnet = {
 				...magnet,
-				'xpos': ev.clientX + magnet.xOffset,
-				'ypos': ev.clientY + magnet.yOffset
+				'xpos': cursor.clientX + magnet.xOffset,
+				'ypos': cursor.clientY + magnet.yOffset
 			};
 			this.putMagnet(newmagnet);
 		}
 		
-		 const handleMagnetMouseUp = (ev) => {
-			document.removeEventListener("mousemove", handleMagnetMouseMove);
-			document.removeEventListener("mouseup", handleMagnetMouseUp);
+		 const handleMagnetUp = (ev) => {
+			document.removeEventListener("touchmove", handleMagnetMove);
+			document.removeEventListener("touchend", handleMagnetUp);
+			document.removeEventListener("mousemove", handleMagnetMove);
+			document.removeEventListener("mouseup", handleMagnetUp);
 
 			const freezernode = this.state.freezerref.current;
 			const freezerBox = freezernode.getBoundingClientRect();
@@ -112,10 +117,12 @@ class Door extends React.Component {
 			const freezerRight = freezerBox.right;
 			const freezerBot = freezerBox.bottom;
 
-			if (ev.clientX > freezerLeft && 
-			    ev.clientX < freezerRight && 
-				ev.clientY > freezerTop && 
-				ev.clientY < freezerBot) {
+			const cursor = getCursor(ev);
+
+			if (cursor.clientX > freezerLeft && 
+			    cursor.clientX < freezerRight && 
+				cursor.clientY > freezerTop && 
+				cursor.clientY < freezerBot) {
 				this.removeMagnet(pk, () => { 
 					this.submitMagnets();
 				});
@@ -126,11 +133,13 @@ class Door extends React.Component {
 			}
 		}
 		
-		document.addEventListener("mouseup", handleMagnetMouseUp);
-		document.addEventListener("mousemove", handleMagnetMouseMove);
+		document.addEventListener("touchend", handleMagnetUp);
+		document.addEventListener("touchmove", handleMagnetMove);
+		document.addEventListener("mouseup", handleMagnetUp);
+		document.addEventListener("mousemove", handleMagnetMove);
 	}
 
-	handleWordMouseDown(text, ref, ev) {
+	handleWordDown(text, ref, ev) {
 		ev.persist();
 		const magnets = this.state.magnets;
 		let uuid = getUniqueUUID(magnets);
@@ -149,7 +158,7 @@ class Door extends React.Component {
 			'currentzpos': this.state.currentzpos + 1
 		});
 
-		this.putMagnet(newmagnet, () => this.handleMagnetMouseDown(newmagnet.pk, ev));
+		this.putMagnet(newmagnet, () => this.handleMagnetDown(newmagnet.pk, ev));
 
 
 	}
@@ -191,7 +200,8 @@ class Door extends React.Component {
 				'zpos': magnet.zpos,
 				'text': magnet.text,
 				'key': magnet.pk,
-				'onMouseDown': (ev) => this.handleMagnetMouseDown(magnet.pk, ev)
+				'onTouchStart': (ev) => this.handleMagnetDown(magnet.pk, ev),
+				'onMouseDown': (ev) => this.handleMagnetDown(magnet.pk, ev)
 			});
 			magnetsRendered.push(magnetRendered);
 		}
@@ -208,7 +218,8 @@ class Door extends React.Component {
 			const wordRendered = e(Word, {
 				'text': word,
 				'key': word,
-				'onMouseDown': (ref, ev) => this.handleWordMouseDown(word, ref, ev)
+				'onTouchStart': (ref, ev) => this.handleWordDown(word, ref, ev),
+				'onMouseDown': (ref, ev) => this.handleWordDown(word, ref, ev)
 			});
 			wordsRendered.push(wordRendered);
 		}
@@ -269,7 +280,8 @@ class Magnet extends React.Component {
 		return e('span', { 
 			'className': 'magnet', 
 			'style': style, 
-			'onMouseDown': this.props.onMouseDown 
+			'onTouchStart': this.props.onTouchStart,
+			'onMouseDown': this.props.onMouseDown
 		}, this.props.text);
 	}
 
@@ -286,6 +298,7 @@ class Word extends React.Component {
 		return e('li', {
 			'ref': this.ref,
 			'className': 'word',
+			'onTouchStart': (ev) => this.props.onTouchStart(this.ref, ev),
 			'onMouseDown': (ev) => this.props.onMouseDown(this.ref, ev)
 		}, this.props.text); 
 	}
@@ -311,4 +324,11 @@ function getUniqueUUID(obj) {
 		uuid = getRandomUUID();
 	}
 	return uuid;
+}
+
+function getCursor(ev) {
+	if (ev.changedTouches) {
+		return ev.changedTouches[0];
+	}
+	return ev;
 }

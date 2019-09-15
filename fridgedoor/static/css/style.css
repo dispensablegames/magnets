@@ -4,16 +4,31 @@
 	box-sizing:border-box;
 }
 
+html {
+	height:100%;
+}
+
 body {
 	padding:0;
 	margin:0;
 	background:gray;
 	overflow:hidden;
+	height:100%;
 }
 
-.root {
+#root {
 	position:relative;
+	height:100%;
 }
+
+.door {
+	height:100%;
+}
+
+.fridge {
+	height:100%;
+}
+
 
 .magnet,
 .word {
@@ -79,6 +94,13 @@ body {
 .fridge {
 	position:relative;
 	white-space:nowrap;
+	height:100%;
+}
+
+.button-clear {
+	position:absolute;
+	bottom:0;
+	left:0;
 }
 
 @media (min-width: 800px) {
@@ -91,7 +113,6 @@ body {
 	.fridge {
 		width:calc(100% - 15em);
 	}
-
 
 	.freezer {
 		background:black;
