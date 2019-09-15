@@ -87,7 +87,6 @@ class Door extends React.Component {
 			'yOffset': magnet.ypos - cursor.clientY,
 			'zpos': this.state.currentzpos
 		};
-		console.log(newmagnet);
 		this.setState({
 			'currentzpos': this.state.currentzpos + 1
 		});
